@@ -2,7 +2,7 @@
 # -----------------------------------------------------------
 # Install Chinese Subtitle Downloader to transmission-daemon
 # by luodan@gmail.com
-# v0.9 2015.08.12
+# v0.9.1 2015.08.14
 # -----------------------------------------------------------
 
 get_transmission_line ()
@@ -20,7 +20,7 @@ FORCE_MODE=0
 
 if [ "`whoami`" != "root" ]; then
 	echo "Root is required to run this script."
-#	exit 1
+	exit 1
 fi
 
 TRANSMISSION_DIR=
@@ -143,12 +143,13 @@ if [ "$TRANSMISSION_SERVICE_SCRIPT" != "" ]; then
 	echo Starting transmission...
 	$TRANSMISSION_SERVICE_SCRIPT start
 	echo
-	echo transmission setting has been set.
+	echo Transmission setting has been set.
 else
 	echo
-	echo transmission setting has been set, you have to start transmission manually to take effects.
+	echo Transmission setting has been set, you have to start transmission manually to take effects.
 fi
-echo
+echo !!! IMPORTANT !!!
+echo Make sure the directory [`cd "$CDIR"; cd ../../; pwd`/log] has enough privilleges to let transmission daemon writes log in it.
 
 exit
 

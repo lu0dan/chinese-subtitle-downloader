@@ -47,7 +47,7 @@ fi
 . "$CSD_DIRECTORY/subtitle.conf"
 
 if [ "x$CSD_LOG_FILE" == "x" ]; then
-	export CSD_LOG_FILE="$CSD_DIRECTORY/$LOG_FILE_NAME"
+	export CSD_LOG_FILE="$CSD_DIRECTORY/$LOG_FILE"
 	export CSD_LOG_LEVEL=0
 	export CSD_SCRIPTS_DIRECTORY="$CSD_DIRECTORY/$SCRIPTS_DIRECTORY_NAME"
 	export CSD_TEMP_DIRECTORY="$CSD_DIRECTORY/$TEMP_DIRECTORY_NAME"
@@ -56,6 +56,11 @@ fi
 
 [ ! -d "$CSD_TEMP_DIRECTORY" ] && mkdir -p "$CSD_TEMP_DIRECTORY"
 [ ! -w "$CSD_TEMP_DIRECTORY" ] && echo "ERROR: Temporary directory not accessable." && exit 1
+
+LOG_FILE_DIRECTORY=`dirname "$CSD_LOG_FILE"`
+[ ! -d "$LOG_FILE_DIRECTORY" ] && mkdir -p "$LOG_FILE_DIRECTORY"
+[ ! -w "$LOG_FILE_DIRECTORY" ] && export $CSD_LOG_FILE=
+unset LOG_FILE_DIRECTORY
 
 MODEL_NAME=`basename "$0"`
 MODEL_NAME=${MODEL_NAME%.sh}

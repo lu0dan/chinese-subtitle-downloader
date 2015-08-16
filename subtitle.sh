@@ -16,7 +16,7 @@ subtitle_title(){
 }
 
 subtitle_usage(){
-	log Usage: subtitle [-rolfv] path or video file name [path or video file name ...]
+	log Usage: subtitle [-r] [-o] [-l] [-f] [-v] video_file_or_directory [video_file_or_directory ...]
 	log
 	log Options are:
 	log "-r : Process directory recursively."
@@ -45,8 +45,8 @@ process()
 	local TARGET=${@%/}
 	TARGET_BASENAME=`basename "$TARGET"`
 	if [ -d "$TARGET" ]; then
-		if [ -f "$TARGET/$IGNORED_DIRECTORY_ID_FILE" ]; then
-			[ $VERBOSE_MODE -eq 1 ] && log "Skipping directory [$TARGET_BASENAME] ... \"$IGNORED_DIRECTORY_ID_FILE\" found."
+		if [ -f "$TARGET/$IGNORED_DIRECTORY_TAG_FILE" ]; then
+			[ $VERBOSE_MODE -eq 1 ] && log "Skipping directory [$TARGET_BASENAME] ... \"$IGNORED_DIRECTORY_TAG_FILE\" found."
 			let DIRECTORIES_SKIPPED=$DIRECTORIES_SKIPPED+1
 		elif [ `echo "$TARGET_BASENAME"|awk '{print match($0,/^('$IGNORED_DIRECTORIES')$/)?1:0;}'` -eq 1 ]; then
 			[ $VERBOSE_MODE -eq 1 ] && log "Skipping directory [$TARGET_BASENAME] ... Ignored directories."

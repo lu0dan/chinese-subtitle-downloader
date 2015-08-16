@@ -1,9 +1,8 @@
 #!/bin/bash
 # ---------------------------------------------------------
-# Subtitle downloader tigger script for Transmission
+# Subtitle downloader trigger script for Transmission
 # by luodan@gmail.com
-# v0.9 2015.08.12
+# v0.9.1 2015.08.14
 # ---------------------------------------------------------
 
-#echo `date` "$TR_TORRENT_DIR/$TR_TORRENT_NAME" >> `dirname "$0"`/log.log
-[ "x$TR_TORRENT_NAME" != "x" ] && `dirname "$0"`/../../subtitle.sh -r -v -l "$TR_TORRENT_DIR/$TR_TORRENT_NAME"
+[ "x$TR_TORRENT_NAME" != "x" ] && `dirname "$0"`/../../subtitle.sh -r -v -o "$TR_TORRENT_DIR/$TR_TORRENT_NAME"
