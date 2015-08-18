@@ -34,7 +34,10 @@ do
 	CURL_FILE="$CSD_TEMP_DIRECTORY/search.$MODEL_NAME.${QUERY_STRING//+/-}.html"
 	REQUEST_URL=$SEARCH_URL_PREFIX$QUERY_STRING
 	[ ! -f "$CURL_FILE" ] && curl --connect-timeout $CONNECT_TIMEOUT -A "$USER_AGENT" -k -s -o "$CURL_FILE" "$REQUEST_URL"
-	sed -n '1,/热门字幕/p' "$CURL_FILE"|grep -E '<a href="/a/[0-9]+" target="_blank">.*</a>'|awk '{s=match($0,/a href="[^"]+"/)?substr($0,RSTART+8,RLENGTH-9):"";t=match($0,/_blank">[^<]+</)?substr($0,RSTART+8,RLENGTH-9):"";if((s!="")&&(t!="")){gsub(/ /,"+",t);print "'$ENGINE_SITE'"s,t,"subhd";}}'>"$LIST_FILE"
+	# old version with download link and desc
+#	sed -n '1,/热门字幕/p' "$CURL_FILE"|grep -E '<a href="/a/[0-9]+" target="_blank">.*</a>'|awk '{s=match($0,/a href="[^"]+"/)?substr($0,RSTART+8,RLENGTH-9):"";t=match($0,/_blank">[^<]+</)?substr($0,RSTART+8,RLENGTH-9):"";if((s!="")&&(t!="")){gsub(/ /,"+",t);print "'$ENGINE_SITE'"s,t,"subhd";}}'>"$LIST_FILE"
+	# new version with link, desc and label
+	sed -n "/<div class=\"box\">/,/热门字幕/p" "$CURL_FILE"|awk 'BEGIN{l="";d="";}{if(match($0,/href="\/a\/[^"]+"/)){l=substr($0,RSTART+6,RLENGTH-7);if(match($0,/_blank">[^<]+</)){d=substr($0,RSTART+8,RLENGTH-9)}next;}if(match($0,/<!--/)){if((l!="")&&(d!="")){gsub(/ /,"+",d);print "'$ENGINE_SITE'"l,d,"subhd"}l="";d=""}t=$0;while(match(t,/<span class="label/)){if(match(t,/[^>]+<\/span>/)){d=d" "substr(t,RSTART,RLENGTH-7);};tr=index(t,"</span>");tr=(tr<1)?9999:tr+7;t=substr(t,tr,9999);}}END{if((l!="")&&(d!="")){gsub(/ /,"+",d);print "'$ENGINE_SITE'"l,d,"subhd";}}'>"$LIST_FILE"
 	[ `cat "$LIST_FILE"|wc -l` -gt 0 ] && STOP_REQUEST=1
 
 	# remove last word and continue search

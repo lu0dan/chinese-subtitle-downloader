@@ -21,9 +21,11 @@ Chinese subtitle download 是一个简单, 轻量级的中文字幕下载具. �
 ### 使用方法
 
 * 手动下载
+
   subtitle.sh [-r] [-v] [-o] [-l] [-f] video_file_or_directory [video_file_or_directory ...]
 
 * 集成到transmission-daemon
+
   scripts/transmission/install.sh
 
 ### 参数解释
@@ -35,6 +37,12 @@ Chinese subtitle download 是一个简单, 轻量级的中文字幕下载具. �
 -l: 仅仅列出需要下载字幕的视频文件. 当与 -f 同时使用时会列出所有视频文件.
 
 ### 版本历史
+
+v0.9.2 2015.08.18
++ 字幕站权重设定
+* 加强subhd站关键字识别
++ 增加美剧剧集识别
+* 加强中文字幕关键字识别
 
 v0.9.1 2015.08.16
 * 改进log记录方式
