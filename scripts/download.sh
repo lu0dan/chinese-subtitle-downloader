@@ -2,7 +2,7 @@
 # --------------------------------------------------
 # Download the first subtitle from the sub list file
 # by luodan@gmail.com
-# v0.9 2015.08.12
+# v0.9.3 2015.08.19
 # --------------------------------------------------
 
 CDIR=`dirname "$0"`
@@ -12,10 +12,36 @@ CDIR=`dirname "$0"`
 [ ! -f "$RATE_FILE" ] && exit 1
 
 SUB_COUNT=`cat "$RATE_FILE" 2>/dev/null|wc -l|awk '{print $1;}'`
+SUB_CHOICE=
+if [ $SUB_COUNT -gt 1 -a "$INTERACTIVE_MODE" == 1 ]; then
+	SUB_CHOICE=
+	# use echo instead of log, because it's interactive with user.
+	while [ "x$SUB_CHOICE" == "x" ]; do
+		echo
+		echo Found $SUB_COUNT subtitles:
+		echo
+		cat "$RATE_FILE"|awk '{gsub(/\+/," ",$2); print NR".",$2,"("$1")";}'
+		echo
+		read -p "Please choose which subtitle to download (1-$SUB_COUNT) [1]:" SUB_CHOICE
+		if [ "x$SUB_CHOICE" == "x" ]; then
+			SUB_CHOICE=1
+		elif [ ! -z ${SUB_CHOICE//[0-9]} ]; then
+			SUB_CHOICE=
+		elif [ $SUB_CHOICE -gt 0 -a $SUB_CHOICE -le $SUB_COUNT ]; then
+			:
+		else
+			SUB_CHOICE=
+		fi
+	done
+else
+	SUB_CHOICE=1
+fi
+
 if [ $SUB_COUNT -gt 0 ]; then
-	export DOWNLOAD_URL=`head -n1 "$RATE_FILE"|awk '{print $1}'`
-	export DOWNLOAD_ENGINE=`head -n1 "$RATE_FILE"|awk '{print $3}'`
-	RATE=`head -n1 "$RATE_FILE"|awk '{print $4}'`
+	SUB_INFO=`cat "$RATE_FILE"|sed -n "${SUB_CHOICE}p"`
+	export DOWNLOAD_URL=`echo $SUB_INFO|awk '{print $1}'`
+	export DOWNLOAD_ENGINE=`echo $SUB_INFO|awk '{print $3}'`
+	RATE=`echo $SUB_INFO|awk '{print $4}'`
 	if [ ${RATE%%.*} -lt $RATE_THRESHOLD ]; then
 		log "Found $SUB_COUNT relative subtitles, but they all seem not quite fit. The highest rate is: $RATE"
 		exit 1

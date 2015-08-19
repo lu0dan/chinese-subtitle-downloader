@@ -2,7 +2,7 @@
 # -----------------------------------------
 # Chinese Subtitle Finder
 # by luodan@gmail.com
-# v0.9 2015.08.12
+# v0.9.3 2015.08.19
 # -----------------------------------------
 
 V=0.9
@@ -16,10 +16,12 @@ subtitle_title(){
 }
 
 subtitle_usage(){
-	log Usage: subtitle [-r] [-o] [-l] [-f] [-v] video_file_or_directory [video_file_or_directory ...]
+	log Usage: subtitle [-r] [-i] [-o] [-l] [-f] [-v] video_file_or_directory [video_file_or_directory ...]
 	log
 	log Options are:
 	log "-r : Process directory recursively."
+	log "-i : Interactive mode, choose which subtitle to download when there are multiple choices."
+	log "     With \"-i\", log to file option \"-o\" will automatically set off."
 	log "-o : Send messages to log file, instead of displaying on screen (sending to stdout)."
 	log "-l : List all the video files need to download subtitles. If -f presents, list all video files."
 	log "     With \"-l\", verbose mode \"-v\" is automatically set off. Script title and summary information will *NOT* display either."
@@ -37,6 +39,7 @@ subtitle_summary(){
 	log "  Directories processed: $DIRECTORIES_PROCESSED"
 	log "    Directories skipped: $DIRECTORIES_SKIPPED"
 	log "          Files skipped: $FILES_SKIPPED"
+	log "-----------------------------"
 	log
 }
 
@@ -95,11 +98,14 @@ RECURSIVE_MODE=0
 FORCE_MODE=0
 VERBOSE_MODE=0
 LIST_MODE=0
+export INTERACTIVE_MODE=0
 
 for ARG in "$@"; do
 	case "$ARG" in
 		"-r")	RECURSIVE_MODE=1;;
-		"-o")	export CSD_LOG_LEVEL=1;;
+		"-o")	[ "$INTERACTIVE_MODE" == "1" ] && export CSD_LOG_LEVEL=0 || export CSD_LOG_LEVEL=1;;
+		"-i")	export INTERACTIVE_MODE=1
+			export CSD_LOG_LEVEL=0;;
 		"-l")	[ "$VERBOSE_MODE" == "1" ] && VERBOSE_MODE=0
 			LIST_MODE=1
 			;;

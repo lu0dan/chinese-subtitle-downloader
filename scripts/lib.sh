@@ -2,7 +2,7 @@
 # -----------------------------------------
 # Common Library for Subtitle downloader
 # by luodan@gmail.com
-# v0.9 2015.08.12
+# v0.9.3 2015.08.19
 # -----------------------------------------
 
 is_command_available() {
@@ -35,8 +35,8 @@ is_video(){
 }
 
 CDIR=`dirname "$0"`
-CNAME=`basename "$0"`
-[ "$DEBUG" == "*" -o "$DEBUG" != "${DEBUG//$CNAME/}" ] && set -x
+SCRIPT_NAME=`basename "$0"`
+[ "$DEBUG" == "*" -o "$DEBUG" != "${DEBUG//$SCRIPT_NAME/}" ] && set -x
 
 if [ "x$CSD_DIRECTORY" == "x" ]; then
 	export CSD_DIRECTORY=`cd "$CDIR"; pwd`
@@ -54,15 +54,21 @@ if [ "x$CSD_LOG_FILE" == "x" ]; then
 	export PS_COMMAND="ps" && [ `ps|wc -l` -lt 10 ] && export PS_COMMAND="ps aux"
 fi
 
-[ ! -d "$CSD_TEMP_DIRECTORY" ] && mkdir -p "$CSD_TEMP_DIRECTORY"
-[ ! -w "$CSD_TEMP_DIRECTORY" ] && echo "ERROR: Temporary directory not accessable." && exit 1
+if [ "x$CSD_ENV_CHECKED" == "x" ]; then
+	# temp directory
+	[ ! -d "$CSD_TEMP_DIRECTORY" ] && mkdir -p "$CSD_TEMP_DIRECTORY" && chmod 777 "$CSD_TEMP_DIRECTORY"
+	[ ! -w "$CSD_TEMP_DIRECTORY" ] && echo "ERROR: Temporary directory not accessable." && exit 1
 
-LOG_FILE_DIRECTORY=`dirname "$CSD_LOG_FILE"`
-[ ! -d "$LOG_FILE_DIRECTORY" ] && mkdir -p "$LOG_FILE_DIRECTORY"
-[ ! -w "$LOG_FILE_DIRECTORY" ] && export $CSD_LOG_FILE=
-unset LOG_FILE_DIRECTORY
+	# log directory
+	LOG_FILE_DIRECTORY=`dirname "$CSD_LOG_FILE"`
+	[ ! -d "$LOG_FILE_DIRECTORY" ] && mkdir -p "$LOG_FILE_DIRECTORY" && chmod 777 "$LOG_FILE_DIRECTORY"
+	[ ! -f "$CSD_LOG_FILE" ] && touch "$CSD_LOG_FILE" && chmod 666 "$CSD_LOG_FILE"
+	[ ! -w "$LOG_FILE_DIRECTORY" ] && export $CSD_LOG_FILE=
+	unset LOG_FILE_DIRECTORY
 
-MODEL_NAME=`basename "$0"`
-MODEL_NAME=${MODEL_NAME%.sh}
+	export CSD_ENV_CHECKED=1
+fi
+
+MODEL_NAME=${SCRIPT_NAME%.sh}
 [ "$MODEL_NAME" == "subtitle" ] && export CSD_LOG_PREFIX= || export CSD_LOG_PREFIX="$MODEL_NAME"
 
