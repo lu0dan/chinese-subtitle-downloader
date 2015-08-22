@@ -2,7 +2,7 @@
 # -----------------------------------------------------------
 # Install Chinese Subtitle Downloader to transmission-daemon
 # by luodan@gmail.com
-# v0.9.1 2015.08.14
+# v0.9.3 2015.08.22
 # -----------------------------------------------------------
 
 get_transmission_line ()
@@ -62,7 +62,7 @@ if [ "$TRANSMISSION_DIR" == "" ]; then
 	echo transmission not found.
 	echo
 	echo "ERROR: Can not find transmission setting dir. Please start transmission and run this script again."
-	echo "If still got this error, please make sure transmission is running by use PS command."
+	echo "If still got this error, please make sure transmission is running by checking with ps command."
 	echo
 	exit 1
 fi
@@ -83,25 +83,49 @@ echo found.
 echo -n Checking transmission setting ...
 TRANSMISSION_SETTING=$TRANSMISSION_DIR/settings.json
 
-ITEM1_MATCH="`cat $TRANSMISSION_SETTING|grep '"script-torrent-done-filename"'|awk 'BEGIN {FS=":";} {m=match($2, /"[^"]+"/)?substr($2, RSTART, RLENGTH):""; print m;}'`"
-ITEM2_MATCH="`cat $TRANSMISSION_SETTING|grep '"script-torrent-done-enabled"'|awk 'BEGIN {FS=":";} {m=match($2, /[a-z]+/)?substr($2, RSTART, RLENGTH):""; print (m=="true") ? 1 : 0;}'`"
+CURRENT_HOOK_SCRIPT="`cat $TRANSMISSION_SETTING|grep '"script-torrent-done-filename"'|awk 'BEGIN {FS=":";} {m=match($2, /"[^"]+"/)?substr($2, RSTART, RLENGTH):""; print m;}'`"
+HOOK_ENABLED="`cat $TRANSMISSION_SETTING|grep '"script-torrent-done-enabled"'|awk 'BEGIN {FS=":";} {m=match($2, /[a-z]+/)?substr($2, RSTART, RLENGTH):""; print (m=="true") ? 1 : 0;}'`"
+CURRENT_HOOK_SCRIPT=${CURRENT_HOOK_SCRIPT//\"/}
 
-if [ "$ITEM2_MATCH" == "1" ]; then
-	echo set
+if [ "$HOOK_ENABLED" == "1" ]; then
+	echo set.
+	if [ "${CURRENT_HOOK_SCRIPT//_alt/}" == "$HOOK_SCRIPT" ]; then
+		echo
+		echo Transmission hook successfully installed.
+		rm -rf "$TEMP_SETTING_FILE"
+		exit 0
+	fi
 else
-	echo not set
+	echo not set.
 fi
 
-if [ "x$ITEM1_MATCH" != "x" ]; then
-	echo
-	echo "WARNNING: transmission setting \"script-torrent-done-filename\" has been set to $ITEM1_MATCH"
-	if [ "$FORCE_MODE" == "1" ]; then
-		echo "Will force change to current subtitle downloader, due to the option \"-f\""
+if [ "${CURRENT_HOOK_SCRIPT//_alt/}" != "$HOOK_SCRIPT" ]; then
+	echo "WARNNING: transmission setting \"script-torrent-done-filename\" has been set to $CURRENT_HOOK_SCRIPT"
+	while [ "x$SCRIPT_MODE" == "x" ]; do
+		echo
+		echo "What method would you like to proceed?"
+		echo "[1] Overwrite this setting. (Current setting will be LOST!)"
+		echo "[2] Set to this script \"$HOOK_SCRIPT\""
+		echo "    and let this script call \"$CURRENT_HOOK_SCRIPT\""
+		echo "[3] Exit"
+		echo
+		read -p "Your choice [2]:" SCRIPT_MODE
+		if [ "x$SCRIPT_MODE" == "x" ]; then
+			SCRIPT_MODE=2
+		elif [ "$SCRIPT_MODE" == "3" ]; then
+			exit 0
+		elif [ "$SCRIPT_MODE" != "1" -a "$SCRIPT_MODE" != "2" ]; then
+			SCRIPT_MODE=
+		fi
+	done
+	if [ "$SCRIPT_MODE" == "1" ]; then
+		echo You chose overwrite setting.
 	else
-		echo "If you want to overwrite this setting to current subtitle downloader, please use \"-f\" option"
-		exit 1
+		echo You chose set and call setting.
 	fi
 fi
+
+echo "SCRIPT_MODE=\"$SCRIPT_MODE\"" >> "$TEMP_SETTING_FILE"
 
 echo -n Checking transmission  ...
 get_transmission_line
@@ -117,7 +141,7 @@ fi
 	
 if [ "$TRANSMISSION_LINE" != "" ]; then
 	echo
-	echo ERROR: Transmission is running and can not be stopped by script. You need to stop transmission manually.
+	echo ERROR: Transmission is running and can not be stopped by this script. You need to stop transmission manually and run this script again.
 	echo
 	exit 1
 fi
@@ -125,7 +149,15 @@ fi
 echo OK.
 			
 echo -n Modifying setting file ...
-	
+
+if [ "$SCRIPT_MODE" == "2" ]; then
+	HOOK_SCRIPT_ALT=${HOOK_SCRIPT/hook.sh/hook_alt.sh}	
+	cat "$HOOK_SCRIPT" > "$HOOK_SCRIPT_ALT"
+	echo "$CURRENT_HOOK_SCRIPT" >> "$HOOK_SCRIPT_ALT"
+	chmod 755 "$HOOK_SCRIPT_ALT"
+	HOOK_SCRIPT="$HOOK_SCRIPT_ALT"
+fi
+
 # deleting items
 sed -e "/script-torrent-done/d" -i "$TRANSMISSION_SETTING" 2>/dev/null
 sed -e "/^{/a\ \ \ \ \"script-torrent-done-enabled\": true\," -i "$TRANSMISSION_SETTING" 2>/dev/null
@@ -148,8 +180,6 @@ else
 	echo
 	echo Transmission setting has been set, you have to start transmission manually to take effects.
 fi
-echo !!! IMPORTANT !!!
-echo Make sure the directory [`cd "$CDIR"; cd ../../; pwd`/log] has enough privilleges to let transmission daemon writes log in it.
 
 exit
 
